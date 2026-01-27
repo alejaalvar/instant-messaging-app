@@ -1,13 +1,17 @@
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
+
+// Load .env variables
+dotenv.config();
 
 const app = express();
-const PORT = 8747;
+const PORT = process.env.PORT || 8747; // Define the port number (from environment variables or default 8747)
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
-    credentials: true,
+    origin: process.env.ORIGIN,  // limits reqs from the defined domain in .env
+    credentials: true,  // allow cookies and auth headers
   })
 );
 
