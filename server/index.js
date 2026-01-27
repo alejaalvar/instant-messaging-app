@@ -105,11 +105,19 @@ app.post("/api/auth/login", async (req, res) => {
 });
 
 // -------------------- Logout --------------------
-app.post("/api/auth/logout", async (req, res) => {
-    try {
-    return res.status(200);
+
+app.post("/api/auth/logout", (req, res) => {
+  try {
+    // Clear the cookie by setting its expiry to a past date
+    res.cookie("jwt", "", { 
+      maxAge: 1, 
+      secure: true, 
+      sameSite: "None" 
+    });
+    return res.status(200).send("Logout successful.");
   } catch (error) {
-    return res.status(500).json({ message: "Internal Server Error" });
+    console.error(error);
+    return res.status(500).send("Internal Server Error");
   }
 });
 
@@ -140,6 +148,32 @@ app.post("/api/auth/update-profile", verifyToken, async (req, res) => {
       color: updatedUser.color
     });
   } catch (error) {
+    return res.status(500).send("Internal Server Error");
+  }
+});
+
+// -------------------- Get User Info --------------------
+
+app.get("/api/auth/userinfo", verifyToken, async (req, res) => {
+  try {
+    // req.userId comes from the verifyToken middleware
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).send("User not found.");
+    }
+
+    return res.status(200).json({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      image: user.image,
+      color: user.color,
+      profileSetup: user.profileSetup,
+    });
+  } catch (error) {
+    console.error(error);
     return res.status(500).send("Internal Server Error");
   }
 });
