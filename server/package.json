@@ -1,6 +1,7 @@
 {
   "name": "instant-messaging-app",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,9 +19,12 @@
   },
   "homepage": "https://github.com/alejaalvar/instant-messaging-app#readme",
   "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.1.5"
   }
 }
