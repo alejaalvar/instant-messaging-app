@@ -6,18 +6,19 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import { User } from "./models/User.js";
+import { verifyToken } from "./middleware/AuthMiddleware.js";
 
-dotenv.config();
-const app = express();
+dotenv.config();  // load in env vars
+const app = express();  // create our app
 
-// Middleware
+// ----- Middleware -----
 app.use(cookieParser());
 app.use(express.json());
 app.use(cors({ origin: process.env.ORIGIN, credentials: true }));
 
 const PORT = process.env.PORT || 8747; // Define port from .env
 
-// Connect to MongoDB and then start the server
+// ----- Connect to MongoDB && start the server -----
 mongoose.connect(process.env.DATABASE_URL) // Uses the variable from your .env
   .then(() => {
     console.log("✅ DB Connected");
@@ -31,40 +32,44 @@ mongoose.connect(process.env.DATABASE_URL) // Uses the variable from your .env
     console.error("❌ DB Connection Error:", err);
   });
 
-// --- AUTH ROUTES ---
+// ----- AUTH ROUTES -----
 
-// Feature 1.1: Signup
+// -------------------- Signup --------------------
 app.post("/api/auth/signup", async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    // Check if user exists (Spec requirement: handle duplicate emails)
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(409).json({ message: "User already exists" });
 
-    // Hash password (Spec requirement: bcrypt)
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const newUser = await User.create({ email, password: hashedPassword });
 
-    // Generate JWT (Spec requirement: JWT & HTTP-only cookies)
     const token = jwt.sign({ userId: newUser._id }, process.env.JWT_KEY, { expiresIn: "3d" });
 
     res.cookie("jwt", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // only true in production
+      secure: true,
+      sameSite: "None",
       maxAge: 3 * 24 * 60 * 60 * 1000,
     });
 
     return res.status(201).json({
-      user: { id: newUser._id, email: newUser.email }
+      user: { 
+        id: newUser._id, 
+        email: newUser.email,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        image: newUser.image,
+        profileSetup: newUser.profileSetup 
+      }
     });
   } catch (error) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
-// Feature 1.2: Login
+// -------------------- Login --------------------
+
 app.post("/api/auth/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -80,14 +85,61 @@ app.post("/api/auth/login", async (req, res) => {
     res.cookie("jwt", token, {
       httpOnly: true,
       secure: true,
-      sameSite: "None", // Required for cross-site cookies with Ngrok
+      sameSite: "None",
       maxAge: 3 * 24 * 60 * 60 * 1000,
     });
 
     return res.status(200).json({
-      user: { id: user._id, email: user.email, username: user.username, avatar: user.avatar }
+      user: { 
+        id: user._id, 
+        email: user.email, 
+        firstName: user.firstName, 
+        lastName: user.lastName, 
+        image: user.image, 
+        profileSetup: user.profileSetup 
+      }
     });
   } catch (error) {
     return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// -------------------- Logout --------------------
+app.post("/api/auth/logout", async (req, res) => {
+    try {
+    return res.status(200);
+  } catch (error) {
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// -------------------- Update Profile --------------------
+
+app.post("/api/auth/update-profile", verifyToken, async (req, res) => {
+  try {
+    const { userId } = req;
+    const { firstName, lastName, color } = req.body; // New field names from spec
+
+    if (!firstName || !lastName) {
+      return res.status(400).send("First Name and Last Name are required.");
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { firstName, lastName, color, profileSetup: true }, // Save new fields
+      { new: true, runValidators: true }
+    );
+
+    return res.status(200).json({
+      id: updatedUser.id,
+      email: updatedUser.email,
+      firstName: updatedUser.firstName,
+      lastName: updatedUser.lastName,
+      image: updatedUser.image,
+      profileSetup: updatedUser.profileSetup,
+      color: updatedUser.color
+    });
+  } catch (error) {
+    return res.status(500).send("Internal Server Error");
   }
 });
