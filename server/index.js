@@ -19,19 +19,6 @@ app.use(cors({ origin: process.env.ORIGIN, credentials: true }));
 
 const PORT = process.env.PORT || 8747; // Define port from .env
 
-// ----- Connect to MongoDB && start the server -----
-// mongoose.connect(process.env.DATABASE_URL)
-//   .then(() => {
-//     console.log("✅ DB Connected");
-    
-//     app.listen(PORT, () => {
-//       console.log(`🚀 Server is running at http://localhost:${PORT}`);
-//     });
-//   })
-//   .catch(err => {
-//     console.error("❌ DB Connection Error:", err);
-//   });
-
 // ----- AUTH ROUTES -----
 
 const signup = async (req, res) => {
