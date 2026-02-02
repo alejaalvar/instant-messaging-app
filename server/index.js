@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js";
+import contactsRoutes from "./routes/contactsRoutes.js";
 
 // Load environment variables
 dotenv.config();
@@ -27,9 +28,9 @@ app.use(cors({
 // API ROUTES
 // ========================================
 app.use("/api/auth", authRoutes);
+app.use("/api/contacts", contactsRoutes);
 
 // TODO: Add more routes as you build features
-// app.use("/api/contacts", contactsRoutes);
 // app.use("/api/messages", messagesRoutes);
 
 // ========================================
