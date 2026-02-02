@@ -1,4 +1,5 @@
 import { User } from "../models/User.js";
+import { Message } from "../models/Message.js";
 
 // -------------------- Search Contacts --------------------
 export const searchContacts = async (req, res) => {
@@ -59,29 +60,47 @@ export const getContactsForList = async (req, res) => {
   try {
     const userId = req.userId;
 
-    // TODO: This will need to join with Messages collection once you implement it
-    // For now, return all users except self with mock lastMessageTime
-    const contacts = await User.find(
-      { _id: { $ne: userId } }
-    ).select("_id firstName lastName email image color");
+    // Get all messages where the user is either sender or recipient
+    const messages = await Message.find({
+      $or: [{ sender: userId }, { recipient: userId }],
+    })
+      .sort({ createdAt: -1 }) // Most recent first
+      .populate("sender", "_id firstName lastName email image color")
+      .populate("recipient", "_id firstName lastName email image color");
 
-    // Add mock lastMessageTime for now (you'll replace this with actual message data)
-    const contactsWithTime = contacts.map((contact) => ({
-      _id: contact._id,
-      firstName: contact.firstName,
-      lastName: contact.lastName,
-      email: contact.email,
-      image: contact.image,
-      color: contact.color,
-      lastMessageTime: new Date(), // TODO: Get from actual last message
-    }));
+    // Build a map of contactId -> last message time
+    const contactsMap = new Map();
 
-    // Sort by lastMessageTime (most recent first)
-    contactsWithTime.sort(
-      (a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime)
-    );
+    messages.forEach((message) => {
+      // Determine who the contact is (the other person in the conversation)
+      const contactId =
+        message.sender._id.toString() === userId
+          ? message.recipient._id.toString()
+          : message.sender._id.toString();
 
-    return res.status(200).json({ contacts: contactsWithTime });
+      // Only add if this is the first (most recent) message with this contact
+      if (!contactsMap.has(contactId)) {
+        const contact =
+          message.sender._id.toString() === userId
+            ? message.recipient
+            : message.sender;
+
+        contactsMap.set(contactId, {
+          _id: contact._id,
+          firstName: contact.firstName,
+          lastName: contact.lastName,
+          email: contact.email,
+          image: contact.image,
+          color: contact.color,
+          lastMessageTime: message.createdAt,
+        });
+      }
+    });
+
+    // Convert map to array (already sorted by lastMessageTime due to query sort)
+    const contacts = Array.from(contactsMap.values());
+
+    return res.status(200).json({ contacts });
   } catch (error) {
     console.error("Get contacts for list error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -98,19 +117,20 @@ export const deleteDirectMessages = async (req, res) => {
       return res.status(400).json({ message: "DM ID is required" });
     }
 
-    // TODO: Once you implement the Messages model, delete all messages between
-    // the current user and the target user (dmId)
-    // For now, just return success
+    // Delete all messages between the current user and the target user
+    const result = await Message.deleteMany({
+      $or: [
+        { sender: userId, recipient: dmId },
+        { sender: dmId, recipient: userId },
+      ],
+    });
 
-    // Example of what you'll do later:
-    // await Message.deleteMany({
-    //   $or: [
-    //     { sender: userId, recipient: dmId },
-    //     { sender: dmId, recipient: userId }
-    //   ]
-    // });
+    console.log(`🗑️  Deleted ${result.deletedCount} messages between ${userId} and ${dmId}`);
 
-    return res.status(200).json({ message: "DM deleted successfully" });
+    return res.status(200).json({
+      message: "DM deleted successfully",
+      deletedCount: result.deletedCount
+    });
   } catch (error) {
     console.error("Delete DM error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
