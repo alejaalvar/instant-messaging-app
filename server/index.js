@@ -65,6 +65,14 @@ setupSocketHandlers(io);
 // ========================================
 // HEALTH CHECK (for Railway)
 // ========================================
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    message: "Instant Messaging API",
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
@@ -75,6 +83,17 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/contacts", contactsRoutes);
 app.use("/api/messages", messagesRoutes);
+
+// ========================================
+// ERROR HANDLING
+// ========================================
+process.on("uncaughtException", (err) => {
+  console.error("❌ Uncaught Exception:", err);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("❌ Unhandled Rejection at:", promise, "reason:", reason);
+});
 
 // ========================================
 // DATABASE CONNECTION
