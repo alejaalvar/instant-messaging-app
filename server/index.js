@@ -22,6 +22,12 @@ const DATABASE_URL = process.env.DATABASE_URL;
 // ========================================
 // MIDDLEWARE CONFIGURATION
 // ========================================
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`📨 ${req.method} ${req.path} from ${req.ip}`);
+  next();
+});
+
 app.use(cookieParser());
 app.use(express.json());
 
