@@ -112,6 +112,16 @@ mongoose
 // ========================================
 // START SERVER
 // ========================================
+server.on("listening", () => {
+  const addr = server.address();
+  console.log(`✅ Server is LISTENING on ${addr.address}:${addr.port}`);
+});
+
+server.on("error", (error) => {
+  console.error(`❌ Server error:`, error);
+  process.exit(1);
+});
+
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`🚀 Server listen() callback fired for port ${PORT}`);
 });
