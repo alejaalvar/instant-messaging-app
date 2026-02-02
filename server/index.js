@@ -24,9 +24,27 @@ const DATABASE_URL = process.env.DATABASE_URL;
 // ========================================
 app.use(cookieParser());
 app.use(express.json());
+
+// CORS configuration - allow multiple origins
+const allowedOrigins = [
+  process.env.ORIGIN,
+  "https://instant-messaging-app-production.up.railway.app",
+  "http://localhost:3000",
+  "http://localhost:5173", // Vite default port
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.ORIGIN,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, Postman)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(null, true); // For now, allow all - we'll restrict later
+      }
+    },
     credentials: true,
   })
 );
@@ -36,13 +54,20 @@ app.use(
 // ========================================
 const io = new Server(server, {
   cors: {
-    origin: process.env.ORIGIN,
+    origin: allowedOrigins,
     credentials: true,
   },
 });
 
 // Setup Socket.IO event handlers
 setupSocketHandlers(io);
+
+// ========================================
+// HEALTH CHECK (for Railway)
+// ========================================
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
 
 // ========================================
 // API ROUTES
