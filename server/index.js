@@ -35,6 +35,7 @@ app.use(express.json());
 const allowedOrigins = [
   process.env.ORIGIN,
   "https://instant-messaging-app-production.up.railway.app",
+  "https://cs314-chat-app.netlify.app",
   "http://localhost:3000",
   "http://localhost:5173", // Vite default port
 ].filter(Boolean);
