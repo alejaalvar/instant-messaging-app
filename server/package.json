@@ -13,8 +13,8 @@
     "type": "git",
     "url": "git+https://github.com/alejaalvar/instant-messaging-app.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Alejandro Alvarado",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/alejaalvar/instant-messaging-app/issues"
   },
