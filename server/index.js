@@ -49,7 +49,7 @@ app.use(
       if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
-        callback(null, true); // For now, allow all - we'll restrict later
+        callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
@@ -123,6 +123,7 @@ server.on("error", (error) => {
   process.exit(1);
 });
 
+// necessary ip for railway
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server listen() callback fired for port ${PORT}`);
 });
