@@ -80,6 +80,18 @@ describe("signup - validation", () => {
       message: "Password is too common. Choose a more unique password.",
     });
   });
+
+  it("it returns 400 when password is shorter than 12 characters", async () => {
+    const req = { body: { email: "test@gmail.com", password: "123" } };
+    const res = mockRes();
+
+    await signup(req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toEqual({
+      message: "Password must be at least 12 characters.",
+    });
+  });
 });
 
 describe("signup - database layer", () => {
@@ -148,5 +160,41 @@ describe("login - database layer", () => {
 
     expect(res.statusCode).toBe(400);
     expect(res.body).toEqual({ message: "Invalid password." });
+  });
+
+  it("returns 400 when email is not a string", async () => {
+    const req = {
+      body: { email: 1234, password: "Xk9mLpQ7rNvW" },
+    };
+
+    const res = mockRes();
+
+    await login(req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toEqual({ message: "Invalid input." });
+  });
+
+  it("returns 400 when email format is invalid", async () => {
+    const req = {
+      body: { email: "invalidformatatemail.com", password: "Xk9mLpQ7rNvW" },
+    };
+
+    const res = mockRes();
+
+    await login(req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toEqual({ message: "Invalid email format." });
+  });
+
+  it("returns 400 when emaila and password are missing", async () => {
+    const req = { body: { email: "", password: "" } };
+    const res = mockRes();
+
+    await login(req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toEqual({ message: "Email and password are required." });
   });
 });
