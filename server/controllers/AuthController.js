@@ -1,11 +1,45 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 import { User } from "../models/User.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const COMMON_PASSWORDS = new Set(
+  readFileSync(join(__dirname, "../data/common-passwords.txt"), "utf8")
+    .split("\n")
+    .map((p) => p.trim())
+    .filter(Boolean)
+);
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // -------------------- Signup --------------------
 export const signup = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    if (typeof email !== "string" || typeof password !== "string") {
+      return res.status(400).json({ message: "Invalid input." });
+    }
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required." })
+    }
+
+    if (!EMAIL_REGEX.test(email)) {
+      return res.status(400).json({ message: "Invalid email format." })
+    }
+
+    if (password.length < 12) {
+      return res.status(400).json({ message: "Password must be at least 12 characters." });
+    }
+
+    if (COMMON_PASSWORDS.has(password)) {
+      return res.status(400).json({ message: "Password is too common. Choose a more unique password." });
+    }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({ message: "User already exists" });
@@ -47,6 +81,19 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    if (typeof email !== "string" || typeof password !== "string") {
+      return res.status(400).json({ message: "Invalid input." });
+    }
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required." });
+    }
+
+    if (!EMAIL_REGEX.test(email)) {
+      return res.status(400).json({ message: "Invalid email format." })
+    }
+
     const user = await User.findOne({ email });
 
     if (!user) {
