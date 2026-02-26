@@ -1,6 +1,7 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { signup, login } from "../../controllers/AuthController.js";
 import { User } from "../../models/User.js";
+import bcrypt from "bcrypt";
 
 // Replace the real User model with a fake for this entire file.
 // AuthController imports User from this same path, so it gets the fake too.
@@ -8,6 +9,13 @@ vi.mock("../../models/User.js", () => ({
   User: {
     findOne: vi.fn(),
     create: vi.fn(),
+  },
+}));
+
+vi.mock("bcrypt", () => ({
+  default: {
+    compare: vi.fn(),
+    hash: vi.fn(),
   },
 }));
 
@@ -81,9 +89,15 @@ describe("signup - database layer", () => {
 
   it("returns 409 when user already exists", async () => {
     // Make findOne pretend it found a user in the DB
-    User.findOne.mockResolvedValue({ _id: "abc123", email: "test@example.com" });
+    User.findOne.mockResolvedValue({
+      // mockResolvedvalue "presets" the resolved promise essentially
+      _id: "abc123",
+      email: "test@example.com",
+    });
 
-    const req = { body: { email: "test@example.com", password: "Xk9mLpQ7rNvW" } };
+    const req = {
+      body: { email: "test@example.com", password: "Xk9mLpQ7rNvW" },
+    };
     const res = mockRes();
 
     await signup(req, res);
@@ -98,16 +112,41 @@ describe("login - database layer", () => {
     vi.clearAllMocks();
   });
 
-  it ("returns 404 when user is not found", async () => {
+  it("returns 404 when user is not found", async () => {
     // Make findOne pretend it did not find a user in the DB
     User.findOne.mockResolvedValue(null);
 
-    const req = { body: { email: "test@example.com", password: "Xk9mLpQ7rNvW" } };
+    const req = {
+      body: { email: "test@example.com", password: "Xk9mLpQ7rNvW" },
+    };
     const res = mockRes();
 
     await login(req, res);
 
     expect(res.statusCode).toBe(404);
     expect(res.body).toEqual({ message: "User not found." });
+  });
+
+  it("returns 400 when password is incorrect", async () => {
+    // Make findOne return fake user with a password field
+    // Configure our mock
+    User.findOne.mockResolvedValue({
+      _id: "abc123",
+      email: "test@example.com",
+      password: "some_hashed_string_doesnt_matter",
+    });
+    // Configure the mock
+    bcrypt.compare.mockResolvedValue(false);
+
+    const req = {
+      body: { email: "test@example.com", password: "incorrect_password" },
+    };
+
+    const res = mockRes();
+
+    await login(req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toEqual({ message: "Invalid password." });
   });
 });
