@@ -161,7 +161,10 @@ describe("login - database layer", () => {
     expect(res.statusCode).toBe(400);
     expect(res.body).toEqual({ message: "Invalid password." });
   });
+});
 
+describe("login - validation", () => {
+  //
   it("returns 400 when email is not a string", async () => {
     const req = {
       body: { email: 1234, password: "Xk9mLpQ7rNvW" },
