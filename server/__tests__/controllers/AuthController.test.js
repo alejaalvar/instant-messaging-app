@@ -1,5 +1,15 @@
-import { describe, it, expect } from "vitest";
+import { vi, describe, it, expect, beforeEach } from "vitest";
 import { signup, login } from "../../controllers/AuthController.js";
+import { User } from "../../models/User.js";
+
+// Replace the real User model with a fake for this entire file.
+// AuthController imports User from this same path, so it gets the fake too.
+vi.mock("../../models/User.js", () => ({
+  User: {
+    findOne: vi.fn(),
+    create: vi.fn(),
+  },
+}));
 
 // Creates a fake Express res object that records what was called on it
 const mockRes = () => {
@@ -15,7 +25,10 @@ const mockRes = () => {
   return res;
 };
 
-describe("signup", () => {
+describe("signup - validation", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
   it("returns 400 when email is not a string (NoSQL injection guard)", async () => {
     const req = { body: { email: { $gt: "" }, password: "validpassword123!" } };
     const res = mockRes();
@@ -58,5 +71,43 @@ describe("signup", () => {
     expect(res.body).toEqual({
       message: "Password is too common. Choose a more unique password.",
     });
+  });
+});
+
+describe("signup - database layer", () => {
+  beforeEach(() => {
+    vi.clearAllMocks(); // reset mock state before each test
+  });
+
+  it("returns 409 when user already exists", async () => {
+    // Make findOne pretend it found a user in the DB
+    User.findOne.mockResolvedValue({ _id: "abc123", email: "test@example.com" });
+
+    const req = { body: { email: "test@example.com", password: "Xk9mLpQ7rNvW" } };
+    const res = mockRes();
+
+    await signup(req, res);
+
+    expect(res.statusCode).toBe(409);
+    expect(res.body).toEqual({ message: "User already exists" });
+  });
+});
+
+describe("login - database layer", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it ("returns 404 when user is not found", async () => {
+    // Make findOne pretend it did not find a user in the DB
+    User.findOne.mockResolvedValue(null);
+
+    const req = { body: { email: "test@example.com", password: "Xk9mLpQ7rNvW" } };
+    const res = mockRes();
+
+    await login(req, res);
+
+    expect(res.statusCode).toBe(404);
+    expect(res.body).toEqual({ message: "User not found." });
   });
 });
