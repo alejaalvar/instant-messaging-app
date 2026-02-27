@@ -347,6 +347,129 @@ describe("updateProfile", () => {
     vi.clearAllMocks();
   });
 
+  // ---- length validation ----
+
+  it("returns 400 when firstName is too short (1 character)", async () => {
+    const req = { userId: "abc123", body: { firstName: "A", lastName: "Doe" } };
+    const res = mockRes();
+
+    await updateProfile(req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toBe("Name must be between 2 and 40 characters.");
+  });
+
+  it("returns 400 when firstName is too long (41 characters)", async () => {
+    const req = { userId: "abc123", body: { firstName: "A".repeat(41), lastName: "Doe" } };
+    const res = mockRes();
+
+    await updateProfile(req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toBe("Name must be between 2 and 40 characters.");
+  });
+
+  it("returns 400 when lastName is too short (1 character)", async () => {
+    const req = { userId: "abc123", body: { firstName: "John", lastName: "D" } };
+    const res = mockRes();
+
+    await updateProfile(req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toBe("Name must be between 2 and 40 characters.");
+  });
+
+  // ---- character / format validation ----
+
+  it("returns 400 when firstName starts with a hyphen", async () => {
+    const req = { userId: "abc123", body: { firstName: "-Anne", lastName: "Doe" } };
+    const res = mockRes();
+
+    await updateProfile(req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toBe("Name contains invalid characters.");
+  });
+
+  it("returns 400 when firstName starts with an apostrophe", async () => {
+    const req = { userId: "abc123", body: { firstName: "'Brien", lastName: "Doe" } };
+    const res = mockRes();
+
+    await updateProfile(req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toBe("Name contains invalid characters.");
+  });
+
+  it("returns 400 when firstName contains a digit", async () => {
+    const req = { userId: "abc123", body: { firstName: "John2", lastName: "Doe" } };
+    const res = mockRes();
+
+    await updateProfile(req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toBe("Name contains invalid characters.");
+  });
+
+  it("returns 400 when firstName contains an invalid character (@)", async () => {
+    const req = { userId: "abc123", body: { firstName: "Jo@hn", lastName: "Doe" } };
+    const res = mockRes();
+
+    await updateProfile(req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toBe("Name contains invalid characters.");
+  });
+
+  // ---- valid special names ----
+
+  it("accepts names with accented letters", async () => {
+    User.findByIdAndUpdate.mockResolvedValue({
+      id: "abc123", email: "test@example.com",
+      firstName: "Renée", lastName: "Clément",
+      image: "", profileSetup: true, color: 1,
+    });
+
+    const req = { userId: "abc123", body: { firstName: "Renée", lastName: "Clément", color: 1 } };
+    const res = mockRes();
+
+    await updateProfile(req, res);
+
+    expect(res.statusCode).toBe(200);
+  });
+
+  it("accepts names with an apostrophe (O'Brien)", async () => {
+    User.findByIdAndUpdate.mockResolvedValue({
+      id: "abc123", email: "test@example.com",
+      firstName: "O'Brien", lastName: "Smith",
+      image: "", profileSetup: true, color: 1,
+    });
+
+    const req = { userId: "abc123", body: { firstName: "O'Brien", lastName: "Smith", color: 1 } };
+    const res = mockRes();
+
+    await updateProfile(req, res);
+
+    expect(res.statusCode).toBe(200);
+  });
+
+  it("accepts names with a hyphen (Anne-Marie)", async () => {
+    User.findByIdAndUpdate.mockResolvedValue({
+      id: "abc123", email: "test@example.com",
+      firstName: "Anne-Marie", lastName: "Smith",
+      image: "", profileSetup: true, color: 1,
+    });
+
+    const req = { userId: "abc123", body: { firstName: "Anne-Marie", lastName: "Smith", color: 1 } };
+    const res = mockRes();
+
+    await updateProfile(req, res);
+
+    expect(res.statusCode).toBe(200);
+  });
+
+  // ---- existing tests ----
+
   it("returns 400 when firstName or lastName is missing", async () => {
     // req.userId comes from auth middleware, not req.body
     const req = { userId: "abc123", body: { firstName: "", lastName: "Doe" } };

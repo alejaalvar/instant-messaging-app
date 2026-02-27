@@ -290,10 +290,21 @@ describe("deleteDirectMessages", () => {
     expect(res.body).toEqual({ message: "DM ID is required" });
   });
 
+  it("returns 400 when dmId is not a valid ObjectId", async () => {
+    const req = { userId: "user123", params: { dmId: "not-a-valid-id" } };
+    const res = mockRes();
+
+    await deleteDirectMessages(req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toEqual({ message: "Invalid DM ID" });
+  });
+
   it("returns 200 with deletedCount on successful deletion", async () => {
     Message.deleteMany.mockResolvedValue({ deletedCount: 3 });
 
-    const req = { userId: "user123", params: { dmId: "other456" } };
+    // Use a valid 24-char hex ObjectId so the isValidObjectId guard passes
+    const req = { userId: "user123", params: { dmId: "507f1f77bcf86cd799439011" } };
     const res = mockRes();
 
     await deleteDirectMessages(req, res);
@@ -305,7 +316,7 @@ describe("deleteDirectMessages", () => {
   it("returns 500 when the database throws an unexpected error", async () => {
     Message.deleteMany.mockRejectedValue(new Error("DB failure"));
 
-    const req = { userId: "user123", params: { dmId: "other456" } };
+    const req = { userId: "user123", params: { dmId: "507f1f77bcf86cd799439011" } };
     const res = mockRes();
 
     await deleteDirectMessages(req, res);

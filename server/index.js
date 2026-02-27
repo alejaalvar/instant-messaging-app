@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
@@ -87,7 +88,9 @@ app.get("/health", (req, res) => {
 // ========================================
 // API ROUTES
 // ========================================
-app.use("/api/auth", authRoutes);
+// Limit auth endpoints to 20 requests per 15 minutes to slow brute-force attacks
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20 });
+app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/contacts", contactsRoutes);
 app.use("/api/messages", messagesRoutes);
 

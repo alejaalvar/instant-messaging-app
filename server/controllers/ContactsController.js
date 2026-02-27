@@ -1,3 +1,4 @@
+import { isValidObjectId } from "mongoose";
 import { User } from "../models/User.js";
 import { Message } from "../models/Message.js";
 
@@ -11,6 +12,9 @@ export const searchContacts = async (req, res) => {
       return res.status(400).json({ message: "Search term is required" });
     }
 
+    // Escape special regex characters to prevent ReDoS attacks
+    const escaped = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
     // Search for users matching the searchTerm in firstName, lastName, or email
     // Use case-insensitive regex for partial matching
     // Exclude the current user from results
@@ -19,9 +23,9 @@ export const searchContacts = async (req, res) => {
         { _id: { $ne: req.userId } }, // Exclude current user
         {
           $or: [
-            { firstName: { $regex: searchTerm, $options: "i" } },
-            { lastName: { $regex: searchTerm, $options: "i" } },
-            { email: { $regex: searchTerm, $options: "i" } },
+            { firstName: { $regex: escaped, $options: "i" } },
+            { lastName: { $regex: escaped, $options: "i" } },
+            { email: { $regex: escaped, $options: "i" } },
           ],
         },
       ],
@@ -115,6 +119,10 @@ export const deleteDirectMessages = async (req, res) => {
 
     if (!dmId) {
       return res.status(400).json({ message: "DM ID is required" });
+    }
+
+    if (!isValidObjectId(dmId)) {
+      return res.status(400).json({ message: "Invalid DM ID" });
     }
 
     // Delete all messages between the current user and the target user

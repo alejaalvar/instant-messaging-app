@@ -15,6 +15,10 @@ const COMMON_PASSWORDS = new Set(
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// First char must be a Unicode letter; remaining chars may be letters, hyphens, or apostrophes.
+// Total length enforced separately (2–40 chars).
+const NAME_REGEX = /^[\p{L}][\p{L}'\-]{1,39}$/u;
+
 // -------------------- Signup --------------------
 export const signup = async (req, res) => {
   try {
@@ -41,11 +45,9 @@ export const signup = async (req, res) => {
     }
 
     if (COMMON_PASSWORDS.has(password)) {
-      return res
-        .status(400)
-        .json({
-          message: "Password is too common. Choose a more unique password.",
-        });
+      return res.status(400).json({
+        message: "Password is too common. Choose a more unique password.",
+      });
     }
 
     const existingUser = await User.findOne({ email });
@@ -163,6 +165,15 @@ export const updateProfile = async (req, res) => {
 
     if (!firstName || !lastName) {
       return res.status(400).send("First Name and Last Name are required.");
+    }
+
+    if (firstName.length < 2 || firstName.length > 40 ||
+        lastName.length  < 2 || lastName.length  > 40) {
+      return res.status(400).send("Name must be between 2 and 40 characters.");
+    }
+
+    if (!NAME_REGEX.test(firstName) || !NAME_REGEX.test(lastName)) {
+      return res.status(400).send("Name contains invalid characters.");
     }
 
     const updatedUser = await User.findByIdAndUpdate(
