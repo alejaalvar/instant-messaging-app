@@ -256,6 +256,41 @@ describe("getContactsForList", () => {
     expect(res.body.contacts).toEqual([]);
   });
 
+  it("deduplicates contacts when multiple messages exist between the same pair of users", async () => {
+    const userId = "user123";
+    const msgDate1 = new Date("2024-06-02"); // most recent
+    const msgDate2 = new Date("2024-06-01");
+
+    const otherUser = {
+      _id: { toString: () => "other456" },
+      firstName: "Jane",
+      lastName: "Doe",
+      email: "jane@example.com",
+      image: "",
+      color: 1,
+    };
+
+    // Two messages with the same contact — the second should be skipped
+    const messages = [
+      { sender: { _id: { toString: () => userId } }, recipient: otherUser, createdAt: msgDate1 },
+      { sender: { _id: { toString: () => userId } }, recipient: otherUser, createdAt: msgDate2 },
+    ];
+
+    const populateMock = vi.fn().mockResolvedValue(messages);
+    const firstPopulate = vi.fn().mockReturnValue({ populate: populateMock });
+    const sortMock = vi.fn().mockReturnValue({ populate: firstPopulate });
+    Message.find.mockReturnValue({ sort: sortMock });
+
+    const req = { userId };
+    const res = mockRes();
+
+    await getContactsForList(req, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.contacts).toHaveLength(1); // deduplicated
+    expect(res.body.contacts[0].lastMessageTime).toEqual(msgDate1); // most recent
+  });
+
   it("returns 500 when the database throws an unexpected error", async () => {
     const populateMock = vi.fn().mockRejectedValue(new Error("DB failure"));
     const firstPopulate = vi.fn().mockReturnValue({ populate: populateMock });
