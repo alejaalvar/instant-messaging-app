@@ -117,6 +117,18 @@ describe("signup - database layer", () => {
     expect(res.statusCode).toBe(409);
     expect(res.body).toEqual({ message: "User already exists" });
   });
+
+  it("returns 500 when when database throws an unexpected error", async () => {
+    User.findOne.mockRejectedValue(new Error("DB failure"));
+
+    const req = {};
+    const res = mockRes();
+
+    await signup(req, res);
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body).toEqual({ message: "Internal Server Error" });
+  });
 });
 
 describe("login - database layer", () => {
@@ -191,7 +203,7 @@ describe("login - validation", () => {
     expect(res.body).toEqual({ message: "Invalid email format." });
   });
 
-  it("returns 400 when emaila and password are missing", async () => {
+  it("returns 400 when email and password are missing", async () => {
     const req = { body: { email: "", password: "" } };
     const res = mockRes();
 
@@ -199,5 +211,17 @@ describe("login - validation", () => {
 
     expect(res.statusCode).toBe(400);
     expect(res.body).toEqual({ message: "Email and password are required." });
+  });
+
+  it("returns 500 when when database throws an unexpected error", async () => {
+    User.findOne.mockRejectedValue(new Error("DB failure"));
+
+    const req = {};
+    const res = mockRes();
+
+    await login(req, res);
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body).toEqual({ message: "Internal Server Error" });
   });
 });
