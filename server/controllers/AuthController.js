@@ -10,7 +10,7 @@ const COMMON_PASSWORDS = new Set(
   readFileSync(join(__dirname, "../data/common-passwords.txt"), "utf8")
     .split("\n")
     .map((p) => p.trim())
-    .filter(Boolean)
+    .filter(Boolean),
 );
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -25,19 +25,27 @@ export const signup = async (req, res) => {
     }
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required." })
+      return res
+        .status(400)
+        .json({ message: "Email and password are required." });
     }
 
     if (!EMAIL_REGEX.test(email)) {
-      return res.status(400).json({ message: "Invalid email format." })
+      return res.status(400).json({ message: "Invalid email format." });
     }
 
     if (password.length < 12) {
-      return res.status(400).json({ message: "Password must be at least 12 characters." });
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 12 characters." });
     }
 
     if (COMMON_PASSWORDS.has(password)) {
-      return res.status(400).json({ message: "Password is too common. Choose a more unique password." });
+      return res
+        .status(400)
+        .json({
+          message: "Password is too common. Choose a more unique password.",
+        });
     }
 
     const existingUser = await User.findOne({ email });
@@ -48,11 +56,9 @@ export const signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({ email, password: hashedPassword });
 
-    const token = jwt.sign(
-      { userId: newUser._id },
-      process.env.JWT_KEY,
-      { expiresIn: "3d" }
-    );
+    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_KEY, {
+      expiresIn: "3d",
+    });
 
     res.cookie("jwt", token, {
       httpOnly: true,
@@ -87,11 +93,13 @@ export const login = async (req, res) => {
     }
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required." });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required." });
     }
 
     if (!EMAIL_REGEX.test(email)) {
-      return res.status(400).json({ message: "Invalid email format." })
+      return res.status(400).json({ message: "Invalid email format." });
     }
 
     const user = await User.findOne({ email });
@@ -105,11 +113,9 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid password." });
     }
 
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_KEY,
-      { expiresIn: "3d" }
-    );
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_KEY, {
+      expiresIn: "3d",
+    });
 
     res.cookie("jwt", token, {
       httpOnly: true,
@@ -145,7 +151,7 @@ export const logout = async (req, res) => {
     return res.status(200).send("Logout successful.");
   } catch (error) {
     console.error("Logout error:", error);
-    return res.status(500).send("Internal Server Error");
+    return res.status(500).json("Internal Server Error");
   }
 };
 
@@ -162,7 +168,7 @@ export const updateProfile = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { firstName, lastName, color, profileSetup: true },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     return res.status(200).json({
