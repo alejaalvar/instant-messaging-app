@@ -195,6 +195,52 @@ describe("getContactsForList", () => {
     ]);
   });
 
+  it("returns 200 with contacts built from messages (current user as recipient)", async () => {
+    const userId = "user123";
+    const msgDate = new Date("2024-06-01");
+
+    const otherUser = {
+      _id: { toString: () => "other456" },
+      firstName: "Jane",
+      lastName: "Doe",
+      email: "jane@example.com",
+      image: "",
+      color: 1,
+    };
+
+    const messages = [
+      {
+        // Other user sent this message — contact is the sender
+        sender: otherUser,
+        recipient: { _id: { toString: () => userId } },
+        createdAt: msgDate,
+      },
+    ];
+
+    const populateMock = vi.fn().mockResolvedValue(messages);
+    const firstPopulate = vi.fn().mockReturnValue({ populate: populateMock });
+    const sortMock = vi.fn().mockReturnValue({ populate: firstPopulate });
+    Message.find.mockReturnValue({ sort: sortMock });
+
+    const req = { userId };
+    const res = mockRes();
+
+    await getContactsForList(req, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.contacts).toEqual([
+      {
+        _id: otherUser._id,
+        firstName: "Jane",
+        lastName: "Doe",
+        email: "jane@example.com",
+        image: "",
+        color: 1,
+        lastMessageTime: msgDate,
+      },
+    ]);
+  });
+
   it("returns 200 with an empty array when there are no messages", async () => {
     const populateMock = vi.fn().mockResolvedValue([]);
     const firstPopulate = vi.fn().mockReturnValue({ populate: populateMock });

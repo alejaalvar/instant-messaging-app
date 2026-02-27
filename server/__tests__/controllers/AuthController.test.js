@@ -328,6 +328,18 @@ describe("logout", () => {
     expect(res.body).toBe("Logout successful.");
     expect(res.cookieValue).toBe("");
   });
+
+  it("returns 500 when an unexpected error occurs", async () => {
+    const req = {};
+    const res = mockRes();
+    // Force the try block to throw so the catch path is exercised
+    res.cookie = () => { throw new Error("unexpected"); };
+
+    await logout(req, res);
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body).toBe("Internal Server Error");
+  });
 });
 
 describe("updateProfile", () => {
