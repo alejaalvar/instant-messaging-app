@@ -43,17 +43,37 @@ Try it out! Create an account, add contacts, and start messaging in real-time.
 ```
 instant-messaging-app/
 ├── server/
-│   ├── controllers/        # Request handlers
-│   ├── middleware/         # Authentication middleware
-│   ├── models/            # MongoDB schemas (User, Message)
-│   ├── routes/            # API route definitions
+│   ├── __tests__/                        # Jest test suites
+│   │   ├── app.test.js                   # Express app / route integration tests
+│   │   ├── controllers/
+│   │   │   ├── AuthController.test.js
+│   │   │   ├── ContactsController.test.js
+│   │   │   └── MessagesController.test.js
+│   │   ├── middleware/
+│   │   │   └── AuthMiddleware.test.js
+│   │   └── socket/
+│   │       └── socketHandlers.test.js
+│   ├── controllers/                      # Request handlers
+│   │   ├── AuthController.js
+│   │   ├── ContactsController.js
+│   │   └── MessagesController.js
+│   ├── data/
+│   │   └── common-passwords.txt          # Password blocklist for validation
+│   ├── middleware/                       # Authentication middleware
+│   │   └── AuthMiddleware.js
+│   ├── models/                           # MongoDB schemas
+│   │   ├── Message.js
+│   │   └── User.js
+│   ├── routes/                           # API route definitions
 │   │   ├── authRoutes.js
 │   │   ├── contactsRoutes.js
 │   │   └── messagesRoutes.js
-│   ├── socket/            # Socket.IO event handlers
-│   ├── index.js           # Main server entry point
+│   ├── socket/                           # Socket.IO event handlers
+│   │   └── socketHandlers.js
+│   ├── app.js                            # Express app setup (middleware, routes)
+│   ├── index.js                          # Server entry point (HTTP server, listen)
 │   ├── package.json
-│   └── .env               # Environment variables (not committed)
+│   └── .env                              # Environment variables (not committed)
 └── README.md
 ```
 
