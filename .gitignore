@@ -26,3 +26,6 @@ coverage
 
 # Ignore sensitive info
 *.env
+
+# Ignore the report meant for the professor/grader
+report.md
