@@ -1,3 +1,14 @@
+/**
+ * @file User.js
+ * @author Alejandro Alvarado
+ * @brief Create user schema.
+ *
+ * @description
+ * This file creates the user schema representing a
+ * user. This schema is how the application is able
+ * to write user info to the database.
+ */
+
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
