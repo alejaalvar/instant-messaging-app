@@ -18,6 +18,20 @@ import { User } from "../models/User.js";
 import { Message } from "../models/Message.js";
 
 // -------------------- Search Contacts --------------------
+
+/**
+ * Search for users by name or email.
+ *
+ * Performs a case-insensitive partial match against `firstName`, `lastName`,
+ * and `email` fields. The search term is regex-escaped before use to prevent
+ * ReDoS attacks. The currently authenticated user is excluded from results.
+ *
+ * @async
+ * @param {import('express').Request}  req - Express request. Expects `{ searchTerm }` in `req.body`
+ *   and `req.userId` set by auth middleware.
+ * @param {import('express').Response} res - Express response.
+ * @returns {Promise<void>} 200 with `{ contacts }`, or an error status with a message.
+ */
 export const searchContacts = async (req, res) => {
   try {
     const { searchTerm } = req.body;
@@ -54,6 +68,19 @@ export const searchContacts = async (req, res) => {
 };
 
 // -------------------- Get All Contacts --------------------
+
+/**
+ * Retrieve every registered user except the caller, formatted for a select input.
+ *
+ * Returns a flat list of `{ label, value }` objects where `label` is the user's
+ * full name and `value` is their MongoDB ObjectId string. Used to populate the
+ * member picker when creating a new channel.
+ *
+ * @async
+ * @param {import('express').Request}  req - Express request. Expects `req.userId` set by auth middleware.
+ * @param {import('express').Response} res - Express response.
+ * @returns {Promise<void>} 200 with `{ contacts }`, or an error status with a message.
+ */
 export const getAllContacts = async (req, res) => {
   try {
     // Get all users except the current user
@@ -75,6 +102,20 @@ export const getAllContacts = async (req, res) => {
 };
 
 // -------------------- Get Contacts For List (Sorted by Last Message) --------------------
+
+/**
+ * Retrieve the authenticated user's direct-message contacts sorted by recency.
+ *
+ * Fetches all messages involving the user, then builds a deduplicated list of
+ * unique conversation partners. Each entry includes the contact's profile fields
+ * plus a `lastMessageTime` timestamp. The list order mirrors the message query
+ * sort (most recent first), making it suitable for rendering a DM sidebar.
+ *
+ * @async
+ * @param {import('express').Request}  req - Express request. Expects `req.userId` set by auth middleware.
+ * @param {import('express').Response} res - Express response.
+ * @returns {Promise<void>} 200 with `{ contacts }`, or an error status with a message.
+ */
 export const getContactsForList = async (req, res) => {
   try {
     const userId = req.userId;
@@ -127,6 +168,20 @@ export const getContactsForList = async (req, res) => {
 };
 
 // -------------------- Delete Direct Messages --------------------
+
+/**
+ * Permanently delete all direct messages between the caller and another user.
+ *
+ * Validates the target user's ObjectId from the route parameter, then issues a
+ * bulk delete covering both send and receive directions. Returns the number of
+ * deleted documents for confirmation logging on the client side.
+ *
+ * @async
+ * @param {import('express').Request}  req - Express request. Expects `req.params.dmId` (the other
+ *   user's ID) and `req.userId` set by auth middleware.
+ * @param {import('express').Response} res - Express response.
+ * @returns {Promise<void>} 200 with `{ message, deletedCount }`, or an error status with a message.
+ */
 export const deleteDirectMessages = async (req, res) => {
   try {
     const { dmId } = req.params;

@@ -35,6 +35,19 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const NAME_REGEX = /^[\p{L}][\p{L}'\-]{1,39}$/u;
 
 // -------------------- Signup --------------------
+
+/**
+ * Register a new user account.
+ *
+ * Validates the submitted email and password, checks for duplicate accounts,
+ * hashes the password, creates the user record, and issues a signed JWT cookie
+ * on success.
+ *
+ * @async
+ * @param {import('express').Request}  req - Express request. Expects `{ email, password }` in `req.body`.
+ * @param {import('express').Response} res - Express response.
+ * @returns {Promise<void>} 201 with the new user object, or an error status with a message.
+ */
 export const signup = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -101,6 +114,18 @@ export const signup = async (req, res) => {
 };
 
 // -------------------- Login --------------------
+
+/**
+ * Authenticate an existing user.
+ *
+ * Validates credentials against the stored bcrypt hash and, on success, issues
+ * a signed JWT cookie that keeps the user session alive for three days.
+ *
+ * @async
+ * @param {import('express').Request}  req - Express request. Expects `{ email, password }` in `req.body`.
+ * @param {import('express').Response} res - Express response.
+ * @returns {Promise<void>} 200 with the user object, or an error status with a message.
+ */
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -158,6 +183,18 @@ export const login = async (req, res) => {
 };
 
 // -------------------- Logout --------------------
+
+/**
+ * Log out the current user.
+ *
+ * Clears the `jwt` cookie by overwriting it with an immediately-expiring
+ * value, effectively ending the client session without touching the database.
+ *
+ * @async
+ * @param {import('express').Request}  req - Express request.
+ * @param {import('express').Response} res - Express response.
+ * @returns {Promise<void>} 200 on success, or 500 on an unexpected error.
+ */
 export const logout = async (req, res) => {
   try {
     res.cookie("jwt", "", {
@@ -173,6 +210,20 @@ export const logout = async (req, res) => {
 };
 
 // -------------------- Update Profile --------------------
+
+/**
+ * Update the authenticated user's profile information.
+ *
+ * Validates and sanitizes the supplied name fields, then persists the changes
+ * (first name, last name, color, and `profileSetup: true`) to the User document.
+ * The `userId` is injected by the auth middleware and is not read from the body.
+ *
+ * @async
+ * @param {import('express').Request}  req - Express request. Expects `{ firstName, lastName, color }` in
+ *   `req.body` and `req.userId` set by auth middleware.
+ * @param {import('express').Response} res - Express response.
+ * @returns {Promise<void>} 200 with the updated user object, or an error status with a message.
+ */
 export const updateProfile = async (req, res) => {
   try {
     const { userId } = req;
@@ -213,6 +264,19 @@ export const updateProfile = async (req, res) => {
 };
 
 // -------------------- Get User Info --------------------
+
+/**
+ * Retrieve the authenticated user's profile.
+ *
+ * Looks up the user by the `userId` injected by auth middleware and returns
+ * their public profile fields. Used by the client on page load to hydrate
+ * session state without re-authenticating.
+ *
+ * @async
+ * @param {import('express').Request}  req - Express request. Expects `req.userId` set by auth middleware.
+ * @param {import('express').Response} res - Express response.
+ * @returns {Promise<void>} 200 with the user object, 404 if not found, or 500 on error.
+ */
 export const getUserInfo = async (req, res) => {
   try {
     const user = await User.findById(req.userId);

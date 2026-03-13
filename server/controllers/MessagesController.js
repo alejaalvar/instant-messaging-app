@@ -16,6 +16,20 @@
 import { Message } from "../models/Message.js";
 
 // -------------------- Get Messages --------------------
+
+/**
+ * Retrieve the full message history between the authenticated user and another user.
+ *
+ * Queries all messages where either party is sender or recipient, sorts them
+ * oldest-first, and populates sender and recipient fields with user details.
+ * Real-time delivery of new messages is handled separately via Socket.IO.
+ *
+ * @async
+ * @param {import('express').Request}  req - Express request. Expects `{ id }` (the other user's ID)
+ *   in `req.body` and `req.userId` set by auth middleware.
+ * @param {import('express').Response} res - Express response.
+ * @returns {Promise<void>} 200 with `{ messages }`, or an error status with a message.
+ */
 export const getMessages = async (req, res) => {
   try {
     const { id } = req.body; // The other user's ID

@@ -13,6 +13,19 @@
 
 import jwt from "jsonwebtoken";
 
+/**
+ * Express middleware that enforces JWT authentication on protected routes.
+ *
+ * Reads the `jwt` cookie set during login/signup, verifies the signature
+ * against `JWT_KEY`, and attaches the decoded `userId` to `req` so that
+ * downstream handlers can identify the caller without re-reading the token.
+ * Rejects unauthenticated requests with 401 and invalid/expired tokens with 403.
+ *
+ * @param {import('express').Request}      req  - Express request.
+ * @param {import('express').Response}     res  - Express response.
+ * @param {import('express').NextFunction} next - Express next function.
+ * @returns {void}
+ */
 export const verifyToken = (req, res, next) => {
   const token = req.cookies.jwt; // Access the cookie you set in signup/login
 

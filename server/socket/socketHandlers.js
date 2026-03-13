@@ -19,6 +19,21 @@ import { Message } from "../models/Message.js";
 // Map to store userId -> socketId for online users
 const userSocketMap = new Map();
 
+/**
+ * Attach all Socket.IO event handlers to the server instance.
+ *
+ * On each new connection the JWT cookie is extracted from the handshake headers
+ * and verified. Unauthenticated or tampered connections are immediately
+ * disconnected. Authenticated sockets are tracked in `userSocketMap` so that
+ * messages can be routed to online users in O(1) time.
+ *
+ * Registers the following socket events per connection:
+ * - `sendMessage`  — persist a new DM and fan it out to sender and recipient.
+ * - `disconnect`   — remove the user's entry from `userSocketMap`.
+ *
+ * @param {import('socket.io').Server} io - The Socket.IO server instance.
+ * @returns {void}
+ */
 export const setupSocketHandlers = (io) => {
   io.on("connection", (socket) => {
     console.log(`New socket connection: ${socket.id}`);
@@ -55,6 +70,17 @@ export const setupSocketHandlers = (io) => {
     // ========================================
     // SEND MESSAGE EVENT
     // ========================================
+    /**
+     * Handle an outgoing direct message from the authenticated user.
+     *
+     * Validates that all required fields are present and that the claimed sender
+     * matches the socket's authenticated `userId` to prevent spoofing. The message
+     * is persisted to MongoDB and then emitted as a `receiveMessage` event to both
+     * the recipient (if online) and the sender (as a delivery confirmation).
+     *
+     * @event sendMessage
+     * @param {{ sender: string, recipient: string, content: string, messageType?: string }} data
+     */
     socket.on("sendMessage", async (data) => {
       try {
         const { sender, recipient, content, messageType = "text" } = data;
@@ -118,6 +144,14 @@ export const setupSocketHandlers = (io) => {
     // ========================================
     // DISCONNECT EVENT
     // ========================================
+    /**
+     * Handle a socket disconnection.
+     *
+     * Removes the user's entry from `userSocketMap` so that subsequent messages
+     * addressed to this user are not routed to a stale socket ID.
+     *
+     * @event disconnect
+     */
     socket.on("disconnect", () => {
       console.log(`Socket disconnected: ${socket.id}`);
 
