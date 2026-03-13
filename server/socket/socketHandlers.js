@@ -1,3 +1,18 @@
+/**
+ * @file socketHandlers.js
+ * @author Alejandro Alvarado
+ * @brief Setup web socket handlers.
+ *
+ * @description
+ * This module receives a web socket (passed
+ * in from the app.js module) and sets up the
+ * handlers for each possible event: a new connection
+ * is received (store that info in a hash map for efficient
+ * lookups), a send message event is received (validate and
+ * write it to the database), or a disconnect event is received
+ * (remove the user from the hash map).
+ */
+
 import jwt from "jsonwebtoken";
 import { Message } from "../models/Message.js";
 
@@ -6,7 +21,7 @@ const userSocketMap = new Map();
 
 export const setupSocketHandlers = (io) => {
   io.on("connection", (socket) => {
-    console.log(`⚡ New socket connection: ${socket.id}`);
+    console.log(`New socket connection: ${socket.id}`);
 
     // ========================================
     // AUTHENTICATION
@@ -18,7 +33,7 @@ export const setupSocketHandlers = (io) => {
       ?.split("=")[1];
 
     if (!token) {
-      console.log("❌ No JWT token found, disconnecting socket");
+      console.log("No JWT token found, disconnecting socket");
       socket.disconnect();
       return;
     }
@@ -30,9 +45,9 @@ export const setupSocketHandlers = (io) => {
 
       // Store user's socket connection
       userSocketMap.set(userId, socket.id);
-      console.log(`✅ User ${userId} connected with socket ${socket.id}`);
+      console.log(`User ${userId} connected with socket ${socket.id}`);
     } catch (error) {
-      console.log("❌ Invalid JWT token, disconnecting socket");
+      console.log("Invalid JWT token, disconnecting socket");
       socket.disconnect();
       return;
     }
@@ -65,8 +80,14 @@ export const setupSocketHandlers = (io) => {
         });
 
         // Populate sender and recipient details for the response
-        await newMessage.populate("sender", "_id email firstName lastName image");
-        await newMessage.populate("recipient", "_id email firstName lastName image");
+        await newMessage.populate(
+          "sender",
+          "_id email firstName lastName image",
+        );
+        await newMessage.populate(
+          "recipient",
+          "_id email firstName lastName image",
+        );
 
         // Prepare message object to send
         const messageData = {
@@ -87,7 +108,7 @@ export const setupSocketHandlers = (io) => {
         // Emit back to sender (confirmation)
         socket.emit("receiveMessage", messageData);
 
-        console.log(`📨 Message sent from ${sender} to ${recipient}`);
+        console.log(`Message sent from ${sender} to ${recipient}`);
       } catch (error) {
         console.error("Send message error:", error);
         socket.emit("error", { message: "Failed to send message" });
@@ -98,7 +119,7 @@ export const setupSocketHandlers = (io) => {
     // DISCONNECT EVENT
     // ========================================
     socket.on("disconnect", () => {
-      console.log(`🔌 Socket disconnected: ${socket.id}`);
+      console.log(`Socket disconnected: ${socket.id}`);
 
       // Remove user from online users map
       userSocketMap.delete(userId);
