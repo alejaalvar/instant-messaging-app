@@ -1,3 +1,17 @@
+/**
+ * @file app.js
+ * @author Alejandro Alvarado
+ * @brief Create the express app.
+ *
+ * @description
+ * This module is responsible for creating the express
+ * app, configuring it with the appropriate middleware,
+ * creating the web socket through which messages will be
+ * sent (utilizing TCP stream sockets with socket.io), and
+ * ultimately exporting both the app and server so that
+ * the primary index.js file can utilize them.
+ */
+
 import express from "express";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -17,7 +31,7 @@ const server = createServer(app);
 // ========================================
 // Request logging middleware
 app.use((req, res, next) => {
-  console.log(`📨 ${req.method} ${req.path} from ${req.ip}`);
+  console.log(`${req.method} ${req.path} from ${req.ip}`);
   next();
 });
 
