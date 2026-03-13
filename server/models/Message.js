@@ -1,3 +1,16 @@
+/**
+ * @file Message.js
+ * @author Alejandro Alvarado
+ * @brief Create messages schema.
+ *
+ * @description
+ * This file is responsible for creating the Mongoose schemas
+ * through which the application is able to perform CRUD operations
+ * on the database related to messaging. When the messaging component
+ * is invoked, it also performs a write operation on the database through
+ * the message schema provided here.
+ */
+
 import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema(
