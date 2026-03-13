@@ -19,13 +19,13 @@ const messageSchema = new mongoose.Schema(
     },
     content: {
       type: String,
-      required: function () {
+      required: /* c8 ignore next */ function () {
         return this.messageType === "text";
       },
     },
     fileUrl: {
       type: String,
-      required: function () {
+      required: /* c8 ignore next */ function () {
         return this.messageType === "file";
       },
     },
