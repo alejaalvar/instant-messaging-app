@@ -1,3 +1,16 @@
+/**
+ * @file MessagesController.test.js
+ * @author Alejandro Alvarado
+ * @brief Test the messages controller handlers.
+ *
+ * @description
+ * This module contains unit tests for the getMessages
+ * controller function. The Message model is mocked so that
+ * the handler's query logic, input validation, and response
+ * formatting can be tested in isolation without a live
+ * database connection.
+ */
+
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { getMessages } from "../../controllers/MessagesController.js";
 import { Message } from "../../models/Message.js";

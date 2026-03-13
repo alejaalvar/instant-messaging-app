@@ -1,3 +1,17 @@
+/**
+ * @file socketHandlers.test.js
+ * @author Alejandro Alvarado
+ * @brief Test the web socket event handlers.
+ *
+ * @description
+ * This module contains unit tests for the setupSocketHandlers
+ * function. The socket.io instance and the Message model are
+ * mocked so that each socket event — new connection, send
+ * message, and disconnect — can be exercised in isolation,
+ * confirming correct user tracking, message persistence,
+ * and cleanup behavior.
+ */
+
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { setupSocketHandlers } from "../../socket/socketHandlers.js";
 

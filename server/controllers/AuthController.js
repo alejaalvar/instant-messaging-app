@@ -1,3 +1,18 @@
+/**
+ * @file AuthController.js
+ * @author Alejandro Alvarado
+ * @brief Handle authentication-related request logic.
+ *
+ * @description
+ * This module is responsible for handling the business
+ * logic for all authentication endpoints: signup, login,
+ * logout, update profile, and get user info. It validates
+ * and sanitizes incoming request data, interacts with the
+ * User model to read and write user records, manages JWT
+ * creation and cookie attachment for session handling, and
+ * returns appropriate HTTP responses to the client.
+ */
+
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { readFileSync } from "fs";

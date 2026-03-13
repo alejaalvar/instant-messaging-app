@@ -1,3 +1,18 @@
+/**
+ * @file ContactsController.js
+ * @author Alejandro Alvarado
+ * @brief Handle contacts-related request logic.
+ *
+ * @description
+ * This module is responsible for handling the business
+ * logic for all contacts endpoints: searching for contacts
+ * by name or email, retrieving all users for channel creation,
+ * fetching the current user's contact list sorted by most
+ * recent message, and deleting all direct messages with a
+ * given contact. It queries the User and Message models and
+ * returns the appropriate data to the client.
+ */
+
 import { isValidObjectId } from "mongoose";
 import { User } from "../models/User.js";
 import { Message } from "../models/Message.js";

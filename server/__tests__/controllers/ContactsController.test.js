@@ -1,3 +1,16 @@
+/**
+ * @file ContactsController.test.js
+ * @author Alejandro Alvarado
+ * @brief Test the contacts controller handlers.
+ *
+ * @description
+ * This module contains unit tests for all contacts controller
+ * functions: searchContacts, getAllContacts, getContactsForList,
+ * and deleteDirectMessages. The User and Message models are mocked
+ * so that each handler's logic can be verified independently
+ * without requiring a live database connection.
+ */
+
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import {
   searchContacts,

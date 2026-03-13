@@ -1,3 +1,18 @@
+/**
+ * @file MessagesController.js
+ * @author Alejandro Alvarado
+ * @brief Handle messages-related request logic.
+ *
+ * @description
+ * This module is responsible for handling the business
+ * logic for message retrieval. It queries the Message model
+ * for all messages exchanged between two users, sorts them
+ * in chronological order, and populates sender and recipient
+ * fields with user details before returning the result to
+ * the client. New messages are handled in real time via the
+ * socket handlers rather than through this controller.
+ */
+
 import { Message } from "../models/Message.js";
 
 // -------------------- Get Messages --------------------

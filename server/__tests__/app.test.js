@@ -1,3 +1,14 @@
+/**
+ * @file app.test.js
+ * @author Alejandro Alvarado
+ * @brief Test the express app configuration.
+ *
+ * @description
+ * This module contains integration tests for the express
+ * app itself, verifying that the app is correctly configured
+ * and that its health check endpoints respond as expected.
+ */
+
 import { describe, it, expect } from "vitest";
 import request from "supertest";
 import { app } from "../app.js";

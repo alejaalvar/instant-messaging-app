@@ -1,3 +1,17 @@
+/**
+ * @file AuthMiddleware.test.js
+ * @author Alejandro Alvarado
+ * @brief Test the authentication middleware.
+ *
+ * @description
+ * This module contains unit tests for the verifyToken
+ * middleware function. jsonwebtoken is mocked so that token
+ * presence, validity, and expiry scenarios can each be tested
+ * in isolation, confirming that the middleware correctly
+ * allows or rejects requests and attaches the userId to
+ * the request object when a valid token is present.
+ */
+
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { verifyToken } from "../../middleware/AuthMiddleware.js";
 import jwt from "jsonwebtoken";

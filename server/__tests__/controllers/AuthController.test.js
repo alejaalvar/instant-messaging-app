@@ -1,3 +1,16 @@
+/**
+ * @file AuthController.test.js
+ * @author Alejandro Alvarado
+ * @brief Test the authentication controller handlers.
+ *
+ * @description
+ * This module contains unit tests for all authentication
+ * controller functions: signup, login, logout, updateProfile,
+ * and getUserInfo. Dependencies such as the User model, bcrypt,
+ * and jsonwebtoken are mocked so that each handler's logic can
+ * be tested in isolation without a live database or real tokens.
+ */
+
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { signup, login, logout, updateProfile, getUserInfo } from "../../controllers/AuthController.js";
 import { User } from "../../models/User.js";
