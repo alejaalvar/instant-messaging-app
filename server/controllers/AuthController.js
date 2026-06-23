@@ -230,16 +230,16 @@ export const updateProfile = async (req, res) => {
     const { firstName, lastName, color } = req.body;
 
     if (!firstName || !lastName) {
-      return res.status(400).send("First Name and Last Name are required.");
+      return res.status(400).json("First Name and Last Name are required.");
     }
 
     if (firstName.length < 2 || firstName.length > 40 ||
-        lastName.length  < 2 || lastName.length  > 40) {
-      return res.status(400).send("Name must be between 2 and 40 characters.");
+      lastName.length < 2 || lastName.length > 40) {
+      return res.status(400).json("Name must be between 2 and 40 characters.");
     }
 
     if (!NAME_REGEX.test(firstName) || !NAME_REGEX.test(lastName)) {
-      return res.status(400).send("Name contains invalid characters.");
+      return res.status(400).json("Name contains invalid characters.");
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -259,7 +259,7 @@ export const updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.error("Update profile error:", error);
-    return res.status(500).send("Internal Server Error");
+    return res.status(500).json("Internal Server Error");
   }
 };
 
